@@ -1,0 +1,164 @@
+<?php
+/**
+ * Implements hook_permission().
+ */
+function campaign_permission() {
+  return array(
+    'administer campaign' => array(
+      'title' => t('Administer Campaign Custom module'),
+      'description' => t('Perform administration tasks for Campaign Custom module.'),
+    ),
+    'access campaign content' => array(
+      'title' => t('Access Campaign Custom module'),
+      'description' => t('Access Campaign pages.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function campaign_menu() {
+  $items ['join-now'] = array(
+    'title' => 'Join Now',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('campaign_wizard'),
+    'access arguments' => array('access campaign content'),
+    'file'  => 'campaign.forms.inc',
+  );
+
+  $items ['join-now/thanks'] = array(
+    'title'  => 'Congratulations!',
+    'page callback'  => 'campaign_thanks',
+    'page arguments' => array(''),
+    'access arguments'  => array('access campaign content'),
+    'type'   => MENU_NORMAL_ITEM,
+  );
+
+  $items['admin/config/system/campaign'] = array(
+    'title' => 'Campaign',
+    'description' => 'Campaign settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('campaign_settings_form'),
+    'access arguments' => array('administer campaign'),
+    'file' => 'campaign.admin.inc',
+  );
+  $items['admin/config/system/campaign-report'] = array(
+    'title' => 'Campaign Report',
+    'description' => 'List of Enrollments.',
+    'page callback' => 'campaign_enrollments',
+    'access arguments' => array('administer campaign'),
+    'file' => 'campaign.admin.inc',
+  );
+  
+  $items ['campaign-capture'] = array(
+    'title' => 'Capture Data',
+    'page callback' => 'campaign_capture',
+    'page arguments' => array(),
+    'access arguments' => array('access campaign content'),
+    'file'  => 'campaign.capture.inc',
+  );
+  
+  return $items;
+}
+
+function campaign_exists_email($mail) {
+  return false;
+  
+  if (trim($mail) == '') { 
+    return FALSE; 
+  }
+
+  $result = db_select('campaign', 'j')
+    ->fields('j', array('mail'))
+    ->condition('mail', $mail, '=')
+    ->execute();
+  return (bool) $result->rowCount();
+}
+
+
+function campaign_sanitize_card($cc_number) {
+  return str_replace(array('-', ' ', '/'), '', $cc_number);
+}
+
+function campaign_validate_card($type, $cc_number) {
+  /* Validate; return value is card type if valid. */
+  $card_type = "";
+  $card_regexes = array(
+    "/^4\d{12}(\d\d\d){0,1}$/" => "visa",
+    "/^5[12345]\d{14}$/" => "master",
+    "/^3[47]\d{13}$/" => "american_express",
+    "/^6011\d{12}$/"  => "discover",
+    "/^30[012345]\d{11}$/"  => "diners",
+    "/^3[68]\d{12}$/" => "diners",
+  );
+
+  foreach ($card_regexes as $regex => $types) {
+    if (preg_match($regex, $cc_number)) {
+      $card_type = $types;
+      break;
+    }
+  }
+
+  if (!$card_type) {
+    return FALSE;
+  }
+
+  if ($card_type != $type) {
+    return FALSE;
+  }
+ 
+  // mod 10 checksum algorithm.
+  $revcode = strrev($cc_number);
+  $checksum = 0; 
+
+  for ($i = 0; $i < strlen($revcode); $i++) {
+    $current_num = intval($revcode[$i]);  
+    if ($i & 1) {  // Odd  position.
+      $current_num *= 2;
+    }
+    // Split digits and add.
+    $checksum += $current_num % 10;
+    if ($current_num > 9) {
+      $checksum += 1;
+    }
+  }
+
+  if ($checksum % 10 == 0) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+function campaign_thanks() {
+  return theme('campaign_thanks');
+}
+
+/*
+ * Implements hook_theme().
+ */
+function campaign_theme() {
+  $path = drupal_get_path('module', 'campaign');
+  return array(
+    'campaign_wizard' => array(
+      'template'  => 'campaign-wizard',
+      'path' => $path . '/theme',
+      'render element' => 'form',
+      'file' => 'campaign.theme.inc',
+    ),
+    'campaign_thanks' => array(
+      'template'  => 'campaign-thanks',
+      'path' => $path . '/theme',
+      'file' => 'campaign.theme.inc',
+    ),
+    'campaign_admin' => array(
+      'template' => 'campaign-admin',
+      'path'  => $path . '/theme',
+      'variables'   => array(
+        'data' => NULL,
+      ),
+    ),
+  );
+}

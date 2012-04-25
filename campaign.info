@@ -1,0 +1,8 @@
+core = "7.x"
+name = "Campaign"
+description = "User registration process."
+package = "Campaign"
+project = "campaign"
+recommends[] = elements
+version = "7.x-1.0-beta1"
+configure = admin/config/system/campaign

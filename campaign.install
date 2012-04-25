@@ -1,0 +1,218 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Install, update and uninstall functions for the campaign module.
+ */
+
+
+/**
+ * Implementation of hook_schema().
+ */
+function campaign_schema() {
+  $schema['enrollments'] = array(
+    'description' => '',
+    'fields'      => array(
+      'id' => array(
+        'description' => '',
+        'type'        => 'serial',
+        'not null'    => TRUE,
+      ),
+      'first_name' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '100',
+        'not null'    => TRUE,
+      ),
+      'last_name' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '100',
+        'not null'    => TRUE,
+      ),
+      'address' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+      ),
+      'address' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+      ),
+      'city' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '100',
+        'not null'    => TRUE,
+      ),
+      'state' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '100',
+        'not null'    => TRUE,
+      ),
+      'zip' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '100',
+        'not null'    => TRUE,
+      ),
+      'phone' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '100',
+        'not null'    => TRUE,
+      ),
+      'email' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => FALSE,
+      ),
+      'cc_number' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '100',
+        'not null'    => FALSE,
+      ),
+      'cc_type' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '100',
+        'not null'    => FALSE,
+      ),
+      'cc_month' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '100',
+        'not null'    => FALSE,
+      ),
+      'cc_year' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '100',
+        'not null'    => FALSE,
+      ),
+      'preferences' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => FALSE,
+      ),
+      'response' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '500',
+        'not null'    => FALSE,
+      ),
+      'status' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '15',
+        'not null'    => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+  $schema['track_user'] = array(
+    'description' => '',
+    'fields'      => array(
+      'user_id' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+      ),
+      'user_ip' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+      ),
+      'user_agent' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+      ),
+      'ref_host' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => FALSE,
+      ),
+      'ref_path' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => FALSE,
+      ),
+      'ref_params' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => FALSE,
+      ),
+      'cookie_set' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+      ),
+      'time' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      
+    ),
+    'primary key' => array('user_id'),
+  );
+  $schema['track_event'] = array(
+    'description' => '',
+    'fields'      => array(
+      'user_id' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+      ),
+      'url' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '255',
+        'not null'    => TRUE,
+      ),
+      'event_info' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '1000',
+        'not null'    => FALSE,
+      ),
+      'event_type' => array(
+        'description' => '',
+        'type'        => 'varchar',
+        'length'      => '100',
+        'not null'    => TRUE,
+      ),
+      'time' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function campaign_uninstall() {
+  
+}
