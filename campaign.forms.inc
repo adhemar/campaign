@@ -463,27 +463,25 @@ function campaign_wizard_payment_info_validate($form, &$form_state) {
     require_once $path . '/anet_php_sdk/AuthorizeNet.php'; // The SDK
     global $base_url;
     $url = $base_url . '/' . $_GET['q'];
-//    $api_login_id = variable_get('campaign_authorize_api_login_id', '');
-//    $transaction_key = variable_get('campaign_authorize_transaction_key', '');
-//    $amount = variable_get('campaign_authorize_amount', '');
-//
-//    $transaction = new AuthorizeNetAIM($api_login_id, $transaction_key);
-//    $transaction->amount = $amount;
-//    $transaction->card_num = $payment_info['cc_number'];
-//    $transaction->exp_date = $payment_info['cc_month'] . '/' . str_replace('20', '', $payment_info['cc_year']);
-//    
-//    $transaction->first_name = $personal_info['first_name'];
-//    $transaction->last_name = $personal_info['last_name'];
-//    $transaction->address = $personal_info['address'];
-//    $transaction->city = $personal_info['city'];
-//    $transaction->state = $personal_info['state'];
-//    $transaction->zip = $personal_info['zip'];
-//    $transaction->phone = $personal_info['phone'];
-//    $transaction->email = $personal_info['email'];
-//    
-//    $response = $transaction->authorizeAndCapture();
-    $response->approved = true;
-    $response->transaction_id = 'test';
+    $api_login_id = variable_get('campaign_authorize_api_login_id', '');
+    $transaction_key = variable_get('campaign_authorize_transaction_key', '');
+    $amount = variable_get('campaign_authorize_amount', '');
+
+    $transaction = new AuthorizeNetAIM($api_login_id, $transaction_key);
+    $transaction->amount = $amount;
+    $transaction->card_num = $payment_info['cc_number'];
+    $transaction->exp_date = $payment_info['cc_month'] . '/' . str_replace('20', '', $payment_info['cc_year']);
+    
+    $transaction->first_name = $personal_info['first_name'];
+    $transaction->last_name = $personal_info['last_name'];
+    $transaction->address = $personal_info['address'];
+    $transaction->city = $personal_info['city'];
+    $transaction->state = $personal_info['state'];
+    $transaction->zip = $personal_info['zip'];
+    $transaction->phone = $personal_info['phone'];
+    $transaction->email = $personal_info['email'];
+    
+    $response = $transaction->authorizeAndCapture();
     
     if ($response->approved) {
       $status = 'success';
