@@ -550,6 +550,7 @@ function campaign_wizard_payment_info_validate($form, &$form_state) {
         'cc_year' => $payment_info['cc_year'],
         'response' => $response->error_message,
         'status' => $status,
+        'time' => time(),
       );
       db_insert('enrollments')
               ->fields($fields)
