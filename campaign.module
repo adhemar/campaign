@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Implements hook_permission().
  */
@@ -24,15 +25,15 @@ function campaign_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('campaign_wizard'),
     'access arguments' => array('access campaign content'),
-    'file'  => 'campaign.forms.inc',
+    'file' => 'campaign.forms.inc',
   );
 
   $items ['join-now/thanks'] = array(
-    'title'  => 'Congratulations!',
-    'page callback'  => 'campaign_thanks',
+    'title' => 'Congratulations!',
+    'page callback' => 'campaign_thanks',
     'page arguments' => array(''),
-    'access arguments'  => array('access campaign content'),
-    'type'   => MENU_NORMAL_ITEM,
+    'access arguments' => array('access campaign content'),
+    'type' => MENU_NORMAL_ITEM,
   );
 
   $items['admin/config/system/campaign'] = array(
@@ -43,39 +44,31 @@ function campaign_menu() {
     'access arguments' => array('administer campaign'),
     'file' => 'campaign.admin.inc',
   );
-  $items['admin/config/system/campaign-report'] = array(
-    'title' => 'Campaign Report',
-    'description' => 'List of Enrollments.',
-    'page callback' => 'campaign_enrollments',
-    'access arguments' => array('administer campaign'),
-    'file' => 'campaign.admin.inc',
-  );
-  
+
   $items ['campaign-capture'] = array(
     'title' => 'Capture Data',
     'page callback' => 'campaign_capture',
     'page arguments' => array(),
     'access arguments' => array('access campaign content'),
-    'file'  => 'campaign.capture.inc',
+    'file' => 'campaign.capture.inc',
   );
-  
+
   return $items;
 }
 
 function campaign_exists_email($mail) {
   return false;
-  
-  if (trim($mail) == '') { 
-    return FALSE; 
+
+  if (trim($mail) == '') {
+    return FALSE;
   }
 
   $result = db_select('campaign', 'j')
-    ->fields('j', array('mail'))
-    ->condition('mail', $mail, '=')
-    ->execute();
+          ->fields('j', array('mail'))
+          ->condition('mail', $mail, '=')
+          ->execute();
   return (bool) $result->rowCount();
 }
-
 
 function campaign_sanitize_card($cc_number) {
   return str_replace(array('-', ' ', '/'), '', $cc_number);
@@ -88,8 +81,8 @@ function campaign_validate_card($type, $cc_number) {
     "/^4\d{12}(\d\d\d){0,1}$/" => "visa",
     "/^5[12345]\d{14}$/" => "master",
     "/^3[47]\d{13}$/" => "american_express",
-    "/^6011\d{12}$/"  => "discover",
-    "/^30[012345]\d{11}$/"  => "diners",
+    "/^6011\d{12}$/" => "discover",
+    "/^30[012345]\d{11}$/" => "diners",
     "/^3[68]\d{12}$/" => "diners",
   );
 
@@ -107,13 +100,13 @@ function campaign_validate_card($type, $cc_number) {
   if ($card_type != $type) {
     return FALSE;
   }
- 
+
   // mod 10 checksum algorithm.
   $revcode = strrev($cc_number);
-  $checksum = 0; 
+  $checksum = 0;
 
   for ($i = 0; $i < strlen($revcode); $i++) {
-    $current_num = intval($revcode[$i]);  
+    $current_num = intval($revcode[$i]);
     if ($i & 1) {  // Odd  position.
       $current_num *= 2;
     }
@@ -126,8 +119,7 @@ function campaign_validate_card($type, $cc_number) {
 
   if ($checksum % 10 == 0) {
     return TRUE;
-  }
-  else {
+  } else {
     return FALSE;
   }
 }
@@ -139,26 +131,470 @@ function campaign_thanks() {
 /*
  * Implements hook_theme().
  */
+
 function campaign_theme() {
   $path = drupal_get_path('module', 'campaign');
   return array(
     'campaign_wizard' => array(
-      'template'  => 'campaign-wizard',
+      'template' => 'campaign-wizard',
       'path' => $path . '/theme',
       'render element' => 'form',
       'file' => 'campaign.theme.inc',
     ),
     'campaign_thanks' => array(
-      'template'  => 'campaign-thanks',
+      'template' => 'campaign-thanks',
       'path' => $path . '/theme',
       'file' => 'campaign.theme.inc',
     ),
     'campaign_admin' => array(
       'template' => 'campaign-admin',
-      'path'  => $path . '/theme',
-      'variables'   => array(
+      'path' => $path . '/theme',
+      'variables' => array(
         'data' => NULL,
       ),
     ),
   );
+}
+
+function campaign_views_api() {
+  return array(
+    'api' => '3.0-alpha1',
+    'path' => drupal_get_path('module', 'campaign') . '/views',
+  );
+}
+
+/**
+ * Implements hook_views_data()
+ *
+ */
+function campaign_views_data() {
+
+  $table = array(
+    'enrollments' => array(
+      'table' => array(
+        'group' => 'Enrollments',
+        'base' => array(
+          'field' => 'id', //Primary key
+          'title' => 'Enrollments',
+          'help' => 'Enrollments database table'
+        )
+      ),
+      'id' => array(
+        'title' => t('Enrollment Id'),
+        'help' => t('Enrollment Id field'),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_numeric'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'first_name' => array(
+        'title' => t('First Name'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'last_name' => array(
+        'title' => t('Last Name'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'address' => array(
+        'title' => t('Address'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'city' => array(
+        'title' => t('City'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'state' => array(
+        'title' => t('State'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'zip' => array(
+        'title' => t('Zip'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'phone' => array(
+        'title' => t('Phone'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'email' => array(
+        'title' => t('Email'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'cc_number' => array(
+        'title' => t('CC Number'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'cc_type' => array(
+        'title' => t('CC Type'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'cc_month' => array(
+        'title' => t('CC Month'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'cc_year' => array(
+        'title' => t('CC Year'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'preferences' => array(
+        'title' => t('Preferences'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'response' => array(
+        'title' => t('Response'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'status' => array(
+        'title' => t('Status'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'time' => array(
+        'title' => t('Time'),
+        'help' => t(''),
+        'field' => array(
+          'handler' => 'views_handler_field_date',
+          'click sortable' => TRUE,
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort_date',
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_date',
+        ),
+      ),
+    ),
+    
+    'track_user' => array(
+      'table' => array(
+        'group' => 'Track Users',
+        'base' => array(
+          'field' => 'user_id', //Primary key
+          'title' => 'Track Users',
+          'help' => 'Track Users database table'
+        )
+      ),
+      'user_id' => array(
+        'title' => t('Track User Id'),
+        'help' => t('Track User Id field'),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'user_ip' => array(
+        'title' => t('IP'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'user_agent' => array(
+        'title' => t('User Agent'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'ref_host' => array(
+        'title' => t('Ref Host'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'ref_path' => array(
+        'title' => t('Ref Path'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'ref_params' => array(
+        'title' => t('Ref Params'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'cookie_set' => array(
+        'title' => t('Cookie Set'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'time' => array(
+        'title' => t('Time'),
+        'help' => t(''),
+        'field' => array(
+          'handler' => 'views_handler_field_date',
+          'click sortable' => TRUE,
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort_date',
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_date',
+        ),
+      ),
+    ),
+    
+    'track_event' => array(
+      'table' => array(
+        'group' => 'Track Events',
+        'base' => array(
+          'field' => 'user_id', //Primary key
+          'title' => 'Track Events',
+          'help' => 'Track Events database table'
+        )
+      ),
+      'user_id' => array(
+        'title' => t('Track User Id'),
+        'help' => t('Track User Id field'),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'url' => array(
+        'title' => t('URL'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'event_info' => array(
+        'title' => t('Event Info'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'event_type' => array(
+        'title' => t('Event Type'),
+        'help' => t(''),
+        'field' => array(
+          'click sortable' => TRUE,
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_string'
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort'
+        )
+      ),
+      'time' => array(
+        'title' => t('Time'),
+        'help' => t(''),
+        'field' => array(
+          'handler' => 'views_handler_field_date',
+          'click sortable' => TRUE,
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort_date',
+        ),
+        'filter' => array(
+          'handler' => 'views_handler_filter_date',
+        ),
+      ),
+    ),
+  );
+  return $table;
 }

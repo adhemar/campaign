@@ -115,6 +115,11 @@ function campaign_schema() {
         'length'      => '15',
         'not null'    => TRUE,
       ),
+      'time' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
     ),
     'primary key' => array('id'),
   );
