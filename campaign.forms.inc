@@ -188,11 +188,25 @@ function form_example_wizard_next_submit($form, &$form_state) {
 function campaign_wizard_personal_info($form, &$form_state) {
   $form = array();
   
+  $campaign_products = explode(PHP_EOL, variable_get('campaign_products', ''));
+  $products = array('' => t('-Select a product-'),);
+  foreach ($campaign_products as $key => $value) {
+    $products[trim($value)] = trim($value);
+  }
+  
+  $form['product'] = array(
+    '#type' => 'select',
+    '#title' => t('Choose Your Product '),
+    '#default_value' => isset($form_state['values']['product']) ? $form_state['values']['product'] : '',
+    '#options'  => $products,
+    '#required' => TRUE,
+  );
+  
   $form['first_name'] = array(
     '#type' => 'textfield',
     '#title' => t('First Name'),
     '#default_value' => !empty($form_state['values']['first_name']) ? $form_state['values']['first_name'] : '',
-    '#size' => 60,
+    '#size' => 30,
     '#maxlength' => 64,
     '#required' => TRUE,
   );
@@ -200,7 +214,7 @@ function campaign_wizard_personal_info($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Last Name'),
     '#default_value' => isset($form_state['values']['last_name']) ? $form_state['values']['last_name'] : '',
-    '#size' => 60,
+    '#size' => 30,
     '#maxlength' => 64,
     '#required' => TRUE,
   );
@@ -208,7 +222,7 @@ function campaign_wizard_personal_info($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Address'),
     '#default_value' => isset($form_state['values']['address']) ? $form_state['values']['address'] : '',
-    '#size' => 60,
+    '#size' => 30,
     '#maxlength' => 64,
     '#required' => TRUE,
   );
@@ -216,7 +230,7 @@ function campaign_wizard_personal_info($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('City'),
     '#default_value' => isset($form_state['values']['city']) ? $form_state['values']['city'] : '',
-    '#size' => 60,
+    '#size' => 30,
     '#maxlength' => 64,
     '#required' => TRUE,
   );
@@ -301,7 +315,7 @@ $states = array(
     '#type' => 'textfield',
     '#title' => t('Zip'),
     '#default_value' => isset($form_state['values']['zip']) ? $form_state['values']['zip'] : '',
-    '#size' => 60,
+    '#size' => 30,
     '#maxlength' => 64,
     '#required' => TRUE,
   );
@@ -309,7 +323,7 @@ $states = array(
     '#type' => module_exists('elements')? 'telfield' : 'textfield',
     '#title' => t('Phone'),
     '#default_value' => isset($form_state['values']['phone']) ? $form_state['values']['phone'] : '',
-    '#size' => 60,
+    '#size' => 30,
     '#maxlength' => 64,
     '#required' => TRUE,
   );
@@ -317,7 +331,7 @@ $states = array(
     '#type' => module_exists('elements')? 'emailfield' : 'textfield',
     '#title' => t('Email'),
     '#default_value' => isset($form_state['values']['email']) ? $form_state['values']['email'] : '',
-    '#size' => 60,
+    '#size' => 30,
     '#maxlength' => 64,
     '#required' => TRUE,
   );
@@ -341,7 +355,26 @@ function campaign_wizard_personal_info_validate($form, &$form_state) {
 
   $media_id = isset($values['media_id']) ? $values['media_id'] : '';
 
-  if (($values['email'] == '') || !valid_email_address($values['email'])) {
+  //Validating
+  if(!preg_match('/^[a-zA-Z \.,-]{1,}$/', $values['first_name'])){
+    form_set_error('first_name', 'Your first name has failed validation.');
+	}
+  if(!preg_match('/^[a-zA-Z \.,-]{1,}$/', $values['last_name'])){
+    form_set_error('last_name', 'Your last name has failed validation.');
+	}
+  if(!preg_match('/^[a-zA-Z0-9 \.,-\/;:\[\]\(\)]{1,}$/', $values['address'])){
+    form_set_error('address', 'Your address has failed validation.');
+	}
+  if(!preg_match('/^[a-zA-Z\x2D\'\.\s\d]+$/', $values['city'])){
+    form_set_error('city', 'Your city has failed validation.');
+	}
+  if(!preg_match('/^[0-9 -]{1,}$/', $values['zip'])){
+    form_set_error('zip', 'Your zip has failed validation.');
+	}
+  if(!preg_match('/(^\(\d{3}\)\s\d{3}(\-|\s)\d{4}$)|(^\d{3}\-\d{3}\-\d{4}$)|(^[\d]{10}$)/', $values['phone'])){
+    form_set_error('phone', 'Your phone has failed validation.');
+	}
+	if (($values['email'] == '') || !valid_email_address($values['email'])) {
     form_set_error('email', 'Email is required');
   }
   
@@ -363,15 +396,6 @@ function campaign_wizard_payment_info($form, &$form_state) {
     $form = array();
   }
 
-   
-  // Exlude fields if billing is on first step  
-  if(!$billing_on_first_step){ 
-    $form['cc_details'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Credit Card Information'),
-    );
-  } // End billing first page if
-  
   $cc_type = array(
     '' => t('-Select type-'),
     'visa' => 'Visa',
@@ -379,18 +403,18 @@ function campaign_wizard_payment_info($form, &$form_state) {
     'discover' => 'Discover',
     'master' => 'Mastercard',
   );
-  $form['cc_details']['cc_type'] = array(
+  $form['cc_type'] = array(
     '#type' => 'select',
     '#title' => t('Credit Card Type'),
     '#default_value' => isset($form_state['values']['cc_type']) ? $form_state['values']['cc_type'] : '',
     '#options'  => $cc_type,
     '#required' => TRUE,
   );
-  $form['cc_details']['cc_number'] = array(
+  $form['cc_number'] = array(
     '#type' => 'textfield',
     '#title' => t('Credit Card Number'),
     '#default_value' => isset($form_state['values']['cc_number']) ? $form_state['values']['cc_number'] : '',
-    '#size' => 40,
+    '#size' => 30,
     '#maxlength' => 20,
     '#required' => TRUE,
   );
@@ -403,7 +427,7 @@ function campaign_wizard_payment_info($form, &$form_state) {
       $month[$i] = $i;
     }
   }
-  $form['cc_details']['cc_month'] = array(
+  $form['cc_month'] = array(
     '#type' => 'select',
     '#title' => t('Exp. Month'),
     '#default_value' => isset($form_state['values']['cc_month']) ? $form_state['values']['cc_month'] : '_none',
@@ -414,7 +438,7 @@ function campaign_wizard_payment_info($form, &$form_state) {
   for ($i = date("Y"); $i < date("Y") + 10; $i++) {
     $year[$i] = $i;
   }
-  $form['cc_details']['cc_year'] = array(
+  $form['cc_year'] = array(
     '#type' => 'select',
     '#title' => t('Exp. Year'),
     '#default_value' => isset($form_state['values']['cc_year']) ? $form_state['values']['cc_year'] : '_none',
@@ -458,32 +482,38 @@ function campaign_wizard_payment_info_validate($form, &$form_state) {
    
     $media_id = $form_state['storage']['media_id'];
 
-    //Authorize.net
-//    $path = drupal_get_path('module', 'campaign') . '/includes';
-//    require_once $path . '/anet_php_sdk/AuthorizeNet.php'; // The SDK
-//    global $base_url;
-//    $url = $base_url . '/' . $_GET['q'];
-//    $api_login_id = variable_get('campaign_authorize_api_login_id', '');
-//    $transaction_key = variable_get('campaign_authorize_transaction_key', '');
-//    $amount = variable_get('campaign_authorize_amount', '');
-//
-//    $transaction = new AuthorizeNetAIM($api_login_id, $transaction_key);
-//    $transaction->amount = $amount;
-//    $transaction->card_num = $payment_info['cc_number'];
-//    $transaction->exp_date = $payment_info['cc_month'] . '/' . str_replace('20', '', $payment_info['cc_year']);
-//    
-//    $transaction->first_name = $personal_info['first_name'];
-//    $transaction->last_name = $personal_info['last_name'];
-//    $transaction->address = $personal_info['address'];
-//    $transaction->city = $personal_info['city'];
-//    $transaction->state = $personal_info['state'];
-//    $transaction->zip = $personal_info['zip'];
-//    $transaction->phone = $personal_info['phone'];
-//    $transaction->email = $personal_info['email'];
-//    
-//    $response = $transaction->authorizeAndCapture();
-    $response->approved = true;
-    $response->transaction_id = 'test';
+    if (!variable_get('campaign_test_mode', '')) {
+      //Authorize.net
+      $path = drupal_get_path('module', 'campaign') . '/includes';
+      require_once $path . '/anet_php_sdk/AuthorizeNet.php'; // The SDK
+      global $base_url;
+      $url = $base_url . '/' . $_GET['q'];
+      $api_login_id = variable_get('campaign_authorize_api_login_id', '');
+      $transaction_key = variable_get('campaign_authorize_transaction_key', '');
+      $amount = variable_get('campaign_authorize_amount', '');
+
+      $transaction = new AuthorizeNetAIM($api_login_id, $transaction_key);
+      $transaction->amount = $amount;
+      $transaction->card_num = $payment_info['cc_number'];
+      $transaction->exp_date = $payment_info['cc_month'] . '/' . str_replace('20', '', $payment_info['cc_year']);
+
+      $transaction->first_name = $personal_info['first_name'];
+      $transaction->last_name = $personal_info['last_name'];
+      $transaction->address = $personal_info['address'];
+      $transaction->city = $personal_info['city'];
+      $transaction->state = $personal_info['state'];
+      $transaction->zip = $personal_info['zip'];
+      $transaction->phone = $personal_info['phone'];
+      $transaction->email = $personal_info['email'];
+
+      $response = $transaction->authorizeAndCapture();
+    } else {
+      //This are for test
+      $response->approved = 'true';
+      $response->transaction_id = 'test';
+    }
+
+    
     
     if ($response->approved) {
       $status = 'success';
@@ -501,15 +531,14 @@ function campaign_wizard_payment_info_validate($form, &$form_state) {
         'cc_type' => $payment_info['cc_type'],
         'cc_month' => $payment_info['cc_month'],
         'cc_year' => $payment_info['cc_year'],
+        'preferences' => '{"product":"'. $personal_info['product'] .'"}',
         'response' => "Transaction ID: " . $response->transaction_id,
         'status' => $status,
         'time' => time(),
       );
 
-      db_insert('enrollments')
-              ->fields($fields)
-              ->execute();
-
+      drupal_write_record('enrollments',$fields);
+      
       //Sending email      
       $email_body = variable_get('campaign_email_body', array('value' => '', 'format' => NULL));
       $body = $email_body['value'];
@@ -531,7 +560,7 @@ function campaign_wizard_payment_info_validate($form, &$form_state) {
       $system = drupal_mail_system($my_module, $my_mail_token);
       $system->mail($message);
       
-      drupal_goto('join-now/thanks');
+      drupal_goto('join-now/thanks/' . $fields['id']);
     } else {
       $status = 'fail';
 
@@ -548,6 +577,7 @@ function campaign_wizard_payment_info_validate($form, &$form_state) {
         'cc_type' => $payment_info['cc_type'],
         'cc_month' => $payment_info['cc_month'],
         'cc_year' => $payment_info['cc_year'],
+        'preferences' => '{"product":"'. $personal_info['state'] .'"}',
         'response' => $response->error_message,
         'status' => $status,
         'time' => time(),

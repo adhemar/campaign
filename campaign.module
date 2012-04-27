@@ -52,22 +52,15 @@ function campaign_menu() {
     'access arguments' => array('access campaign content'),
     'file' => 'campaign.capture.inc',
   );
+  $items ['campaign-getip'] = array(
+    'title' => 'Get IP',
+    'page callback' => 'campaign_getip',
+    'page arguments' => array(),
+    'access arguments' => array('access campaign content'),
+    'file' => 'campaign.capture.inc',
+  );
 
   return $items;
-}
-
-function campaign_exists_email($mail) {
-  return false;
-
-  if (trim($mail) == '') {
-    return FALSE;
-  }
-
-  $result = db_select('campaign', 'j')
-          ->fields('j', array('mail'))
-          ->condition('mail', $mail, '=')
-          ->execute();
-  return (bool) $result->rowCount();
 }
 
 function campaign_sanitize_card($cc_number) {
@@ -145,13 +138,6 @@ function campaign_theme() {
       'template' => 'campaign-thanks',
       'path' => $path . '/theme',
       'file' => 'campaign.theme.inc',
-    ),
-    'campaign_admin' => array(
-      'template' => 'campaign-admin',
-      'path' => $path . '/theme',
-      'variables' => array(
-        'data' => NULL,
-      ),
     ),
   );
 }
