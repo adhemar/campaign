@@ -577,7 +577,7 @@ function campaign_wizard_payment_info_validate($form, &$form_state) {
         'cc_type' => $payment_info['cc_type'],
         'cc_month' => $payment_info['cc_month'],
         'cc_year' => $payment_info['cc_year'],
-        'preferences' => '{"product":"'. $personal_info['state'] .'"}',
+        'preferences' => '{"product":"'. $personal_info['product'] .'"}',
         'response' => $response->error_message,
         'status' => $status,
         'time' => time(),
